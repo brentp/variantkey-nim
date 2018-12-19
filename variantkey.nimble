@@ -11,14 +11,11 @@ license       = "MIT"
 # Dependencies
 
 srcDir = "src"
-installExt = @["nim"]
+installExt = @["nim", "c", "h"]
 
 skipDirs = @["tests"]
 
 import ospaths,strutils
-
-before install:
-  nimgen variantkey.cfg
 
 task test, "run the tests":
   exec "nim c --lineDir:on --debuginfo -r src/variantkey"

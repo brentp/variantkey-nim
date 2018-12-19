@@ -27,7 +27,6 @@ proc decode_variantkey(code: uint64_t; vk: ptr variantkey_t) {.cdecl, importc:"d
 proc variantkey(chrom: cstring; sizechrom: csize; pos: uint32_t; `ref`: cstring;
                 sizeref: csize; alt: cstring; sizealt: csize): uint64_t {.cdecl, importc:"variantkey".}
 
-
 proc decode_refalt(code: uint32, reference: cstring, refsize:ptr csize, alt: cstring, altsize: ptr csize) {.cdecl, importc: "decode_refalt".}
 
 proc decode_chrom(code: uint8): string {.inline.} =
@@ -46,10 +45,10 @@ proc encode*(chrom: string, pos:uint32, ref_allele: string, alt_allele:string): 
   return variantkey(chrom, chrom.len, pos, ref_allele, ref_allele.len.csize, alt_allele, alt_allele.len.csize)
 
 type Position* = object
-    chrom: string
-    position: uint32
-    reference: string
-    alternate: string
+    chrom*: string
+    position*: uint32
+    reference*: string
+    alternate*: string
 
 proc decode*(code:uint64): Position {.inline.} =
     var v : variantkey_t
@@ -67,18 +66,25 @@ proc decode*(code:uint64): Position {.inline.} =
 when isMainModule:
     import random
     import unittest
+    import times
 
     var chroms = @["MT", "X", "Y"]
     for i in 1..22:
         chroms.add($i)
 
-    for i in 0..1000:
-      var c = random(chroms)
-      var p = random(250_000_000).uint32
+    var t = cpuTime()
+    var n = 10_000_000
+    when not defined(release):
+        n = 1_000_000
+    for i in 0..n:
+      var c = rand(chroms)
+      var p = rand(250_000_000).uint32
       var e = encode(c, p, "A", "T")
 
       var d = e.decode
-      check d.chrom == c
-      check d.position == p
-      check d.reference == "A"
-      check d.alternate == "T"
+      doAssert d.chrom == c
+      doAssert d.position == p
+      doAssert d.reference == "A"
+      doAssert d.alternate == "T"
+
+    echo int(n.float64 / (cpuTime() - t)), " encode/decodes per second"
