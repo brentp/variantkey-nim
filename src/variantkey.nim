@@ -53,6 +53,9 @@ type Position* = object
 template exact*(refalt:uint32): bool =
   0'u32 == (refalt and 32'u32)
 
+proc exact*(p:Position): bool {.inline.} =
+  return p.reference.len == 0 and p.alternate.len == 0
+
 proc decode*(code:uint64): Position {.inline.} =
     var v : variantkey_t
     decode_variantkey(code, v.addr)
