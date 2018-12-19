@@ -15,6 +15,12 @@ var
   e = encode(chrom, pos, "A", "T")
 
 
+assert e.exact
 echo e # 10959892387821256704
-echo e.decode # (chrom: "19", position: 3323934, reference: "A", alternate: "T")
+echo e.decode # (chrom: "19", position: 3323934, reference: "A", alternate: "T", exact: true)
+
+# longer variants are encoded with a hash
+e = encode("1", 878111, "CAGGGGCCCCCGGGCTCCGGACCCCCCACCCCGTCCCGGGACTCTGCCCGGCGAGCCCCCCGGAA", "C")
+# the reference and alternate are not set upon decoding.
+echo e # (chrom: "1", position: 878111, reference: "", alternate: "")
 ```

@@ -50,16 +50,21 @@ type Position* = object
     reference*: string
     alternate*: string
 
+template exact*(refalt:uint32): bool =
+  0'u32 == (refalt and 32'u32)
+
 proc decode*(code:uint64): Position {.inline.} =
     var v : variantkey_t
     decode_variantkey(code, v.addr)
-    result.reference.setLen(10)
-    result.alternate.setLen(10)
-    var refi:csize = 10
-    var alti:csize = 10
-    decode_refalt(v.refalt, result.reference, refi.addr, result.alternate, alti.addr)
-    result.reference.setLen(refi.int)
-    result.alternate.setLen(alti.int)
+    if v.refalt.exact:
+      result.reference.setLen(10)
+      result.alternate.setLen(10)
+      var refi:csize = 10
+      var alti:csize = 10
+      decode_refalt(v.refalt, result.reference, refi.addr, result.alternate, alti.addr)
+      result.reference.setLen(refi.int)
+      result.alternate.setLen(alti.int)
+
     result.chrom = decode_chrom(v.chrom)
     result.position = v.pos
 
@@ -73,18 +78,31 @@ when isMainModule:
         chroms.add($i)
 
     var t = cpuTime()
-    var n = 10_000_000
+    var n = 5_000_000
     when not defined(release):
-        n = 1_000_000
+        n = 100_000
+
+    var refs = ["AA", "TT", "CC", "GG", "GGG", "G", "CCC"]
+    var alts = ["T", "C", "GGGGGGG", "AAA", "GGC", "TTCAT"]
     for i in 0..n:
       var c = rand(chroms)
       var p = rand(250_000_000).uint32
-      var e = encode(c, p, "A", "T")
+      var aref = rand(refs)
+      var aalt = rand(alts)
+      var e = encode(c, p, aref, aalt)
 
       var d = e.decode
       doAssert d.chrom == c
       doAssert d.position == p
-      doAssert d.reference == "A"
-      doAssert d.alternate == "T"
+      doAssert d.reference == aref
+      doAssert d.alternate == aalt
 
     echo int(n.float64 / (cpuTime() - t)), " encode/decodes per second"
+
+
+    #1       878111  rs1309689674    CAGGGGCCCCCGGGCTCCGGACCCCCCACCCCGTCCCGGGACTCTGCCCGGCGAGCCCCCCGGAA       C
+    var e = encode("1", 878111, "CAGGGGCCCCCGGGCTCCGGACCCCCCACCCCGTCCCGGGACTCTGCCCGGCGAGCCCCCCGGAA", "C")
+    echo e
+    echo e.decode
+    doAssert e.decode.reference == ""
+    doAssert e.decode.alternate == ""
