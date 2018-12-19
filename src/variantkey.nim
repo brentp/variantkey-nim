@@ -50,6 +50,18 @@ type Position* = object
     reference*: string
     alternate*: string
 
+
+proc cmp_position*(a, b:Position): int =
+  ## ordering function for positions to facilitate sorting.
+  if a.chrom != b.chrom:
+    return cmp(a.chrom, b.chrom)
+  if a.position != b.position:
+    return system.cmp[uint32](a.position, b.position)
+  if a.reference != b.reference:
+    return cmp(a.reference, b.reference)
+  return cmp(a.alternate, b.alternate)
+
+
 template exact*(refalt:uint32): bool =
   0'u32 == (refalt and 32'u32)
 
