@@ -3,18 +3,15 @@ template thisModuleFile: string = instantiationInfo(fullPaths = true).filename
 
 # Package
 
-version       = "0.0.1"
+version       = "0.0.2"
 author        = "Brent Pedersen"
 description   = "encode variants to uint64"
 license       = "MIT"
 
 # Dependencies
 
-requires "nimgen"
 srcDir = "src"
 installExt = @["nim"]
-
-bin = @["variantkey"]
 
 skipDirs = @["tests"]
 
@@ -25,4 +22,3 @@ before install:
 
 task test, "run the tests":
   exec "nim c --lineDir:on --debuginfo -r src/variantkey"
-  exec "bash tests/functional-tests.sh"
